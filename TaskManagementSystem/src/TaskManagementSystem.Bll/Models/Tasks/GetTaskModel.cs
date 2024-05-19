@@ -1,6 +1,6 @@
 using TaskStatus = TaskManagementSystem.Bll.Enums.TaskStatus;
 
-namespace TaskManagementSystem.Bll.Models;
+namespace TaskManagementSystem.Bll.Models.Tasks;
 
 public record GetTaskModel
 {

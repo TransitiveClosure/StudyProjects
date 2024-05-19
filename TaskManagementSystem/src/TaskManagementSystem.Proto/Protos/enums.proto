@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "TaskManagementSystem.Proto.Client";
 
-package workshop_app.proto.client.enums;
+package task_management_app.proto.client.enums;
 
 enum TaskStatus {
   TASK_STATUS_UNKNOWN = 0;

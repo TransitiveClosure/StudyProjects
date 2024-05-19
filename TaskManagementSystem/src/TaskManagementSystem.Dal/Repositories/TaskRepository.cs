@@ -146,7 +146,7 @@ select tp.task_id                               as task_id
         return subTasks;
     }
 
-    public async Task SetParentTask(long taskId, long parentTaskId, CancellationToken token)
+    public async Task SetParentTask(SetParentTaskModel setParentTaskModel, CancellationToken token)
     {
         const string sqlQuery = @"
 update tasks
@@ -159,8 +159,8 @@ update tasks
                 sqlQuery,
                 new
                 {
-                    TaskId = taskId,
-                    ParentTaskId = parentTaskId
+                    TaskId = setParentTaskModel.TaskId,
+                    ParentTaskId = setParentTaskModel.ParentTaskId
                 },
                 cancellationToken: token));
     }

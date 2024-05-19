@@ -1,23 +1,25 @@
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using TaskManagementSystem.Bll.Models;
+using TaskManagementSystem.Bll.Models.Tasks;
 using TaskManagementSystem.Bll.Services.Interfaces;
 using TaskManagementSystem.Extensions;
 using TaskManagementSystem.Proto.Client;
 
 namespace TaskManagementSystem.Services;
 
-public class TasksService :  TaskManagementSystem.Proto.Client.TasksService.TasksServiceBase
+public class TasksService : TaskManagementSystem.Proto.Client.TasksService.TasksServiceBase
 {
     private readonly ITaskService _taskService;
-    
+
     public TasksService(
         ITaskService taskService)
     {
         _taskService = taskService;
     }
 
-    public override async Task<V1CreateTaskResponse> V1CreateTask(V1CreateTaskRequest request, ServerCallContext context)
+    public override async Task<V1CreateTaskResponse> V1CreateTask(V1CreateTaskRequest request,
+        ServerCallContext context)
     {
         var taskId = await _taskService.CreateTask(new CreateTaskModel
         {
@@ -37,7 +39,7 @@ public class TasksService :  TaskManagementSystem.Proto.Client.TasksService.Task
         var task = await _taskService.GetTask(
             request.TaskId,
             context.CancellationToken);
-        
+
         return new V1GetTaskResponse
         {
             TaskId = task.TaskId,
@@ -57,7 +59,17 @@ public class TasksService :  TaskManagementSystem.Proto.Client.TasksService.Task
             AssignToUserId = request.AssigneeUserId,
             UserId = request.UserId
         }, context.CancellationToken);
-        
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> V1SetParentTask(V1SetParentTaskRequest request, ServerCallContext context)
+    {
+        await _taskService.SetParentTask(new SetParentTaskModel
+        {
+            TaskId = request.TaskId,
+            ParentTaskId = request.ParentTaskId
+        }, context.CancellationToken);
         return new Empty();
     }
 }

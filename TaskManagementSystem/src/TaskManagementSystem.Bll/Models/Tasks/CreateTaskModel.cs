@@ -1,4 +1,4 @@
-namespace TaskManagementSystem.Bll.Models;
+namespace TaskManagementSystem.Bll.Models.Tasks;
 
 public record CreateTaskModel
 {

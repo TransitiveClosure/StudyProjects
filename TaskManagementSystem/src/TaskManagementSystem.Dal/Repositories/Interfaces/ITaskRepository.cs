@@ -14,5 +14,5 @@ public interface ITaskRepository
     
     Task<SubTaskModel[]> GetSubTasksInStatus(long parentTaskId, TaskStatus[] statuses, CancellationToken token);
     
-    Task SetParentTask(long taskId, long parentTaskId, CancellationToken token);
+    Task SetParentTask(SetParentTaskModel setParentTaskModel, CancellationToken token);
 }

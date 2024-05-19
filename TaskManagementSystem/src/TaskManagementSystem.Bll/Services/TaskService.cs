@@ -1,12 +1,14 @@
 using System.Text.Json;
 using System.Transactions;
 using Microsoft.Extensions.Caching.Distributed;
-using TaskManagementSystem.Bll.Models;
+using TaskManagementSystem.Bll.Models.Comments;
+using TaskManagementSystem.Bll.Models.Tasks;
 using TaskManagementSystem.Bll.Services.Interfaces;
 using TaskManagementSystem.Dal.Entities;
 using TaskManagementSystem.Dal.Models;
 using TaskManagementSystem.Dal.Repositories.Interfaces;
 using AssignTaskModel = TaskManagementSystem.Dal.Models.AssignTaskModel;
+using SetParentTaskModel = TaskManagementSystem.Dal.Models.SetParentTaskModel;
 using TaskStatus = TaskManagementSystem.Bll.Enums.TaskStatus;
 
 namespace TaskManagementSystem.Bll.Services;
@@ -15,20 +17,17 @@ public class TaskService : ITaskService
 {
     private readonly ITaskRepository _taskRepository;
     private readonly ITaskLogRepository _taskLogRepository;
-    private readonly ITaskCommentRepository _taskCommentRepository;
     private readonly ITakenTaskRepository _takenTaskRepository;
     private readonly IDistributedCache _distributedCache;
 
     public TaskService(
         ITaskRepository taskRepository,
         ITaskLogRepository taskLogRepository,
-        ITaskCommentRepository taskCommentRepository,
         ITakenTaskRepository takenTaskRepository, 
         IDistributedCache distributedCache)
     {
         _taskRepository = taskRepository;
         _taskLogRepository = taskLogRepository;
-        _taskCommentRepository = taskCommentRepository;
         _takenTaskRepository = takenTaskRepository;
         _distributedCache = distributedCache;
     }
@@ -120,7 +119,7 @@ public class TaskService : ITaskService
     }
 
     public async Task AssignTask(
-        Bll.Models.AssignTaskModel model,
+        Models.Tasks.AssignTaskModel model,
         CancellationToken token)
     {
         var task = (await _taskRepository.Get(new TaskGetModel
@@ -160,7 +159,7 @@ public class TaskService : ITaskService
             Status = task.Status,
             AssignedToUserId = task.AssignedToUserId.Value,
             At = DateTimeOffset.UtcNow,
-            UserId = model.UserId,
+            UserId = model.UserId, 
         };
         await _taskLogRepository.Add(new[] { taskLog }, token);
 
@@ -174,48 +173,35 @@ public class TaskService : ITaskService
         
         transaction.Complete();
     }
-
-    public async Task<TaskMessage[]> GetComments(
-        long taskId, CancellationToken token)
+    
+    public async Task SetParentTask(
+        Models.Tasks.SetParentTaskModel model,
+        CancellationToken token)
     {
-        const int cacheTimeoutSeconds = 5;
-        const int cachedTaskMessagesNumber = 5;
+        var task = (await _taskRepository.Get(new TaskGetModel
+            {
+                TaskIds = new[] {model.TaskId}
+            }, token))
+            .SingleOrDefault();
 
-        var cacheKey = $"cache_task_messages:{taskId}";
-        var cachedTaskMessages = await _distributedCache.GetStringAsync(cacheKey, token);
-        if (!string.IsNullOrEmpty(cachedTaskMessages))
+        if (task is null)
         {
-            return JsonSerializer.Deserialize<TaskMessage[]>(cachedTaskMessages) ?? new TaskMessage[]{};
+            return;
         }
-
-        TaskCommentEntityV1[] taskMessages = (await _taskCommentRepository.Get(new TaskCommentGetModel
-        {
-            TaskId = taskId,
-            IncludeDeleted = false
-        }, token));
         
-        var result = taskMessages.Select(taskMessage =>
-            new TaskMessage()
-            {
-                TaskId = taskMessage.TaskId,
-                IsDeleted = taskMessage.DeletedAt is not null,
-                Comment = taskMessage.Message,
-                At = taskMessage.At
-            }).ToArray();
+        using var transaction = CreateTransactionScope();
         
-        var taskMessagesJson = JsonSerializer.Serialize(
-            result.Take(cachedTaskMessagesNumber));
-        await _distributedCache.SetStringAsync(
-            cacheKey,
-            taskMessagesJson,
-            new DistributedCacheEntryOptions()
+        await _taskRepository.SetParentTask(
+            new SetParentTaskModel()
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(cacheTimeoutSeconds)
+                TaskId = model.TaskId,
+                ParentTaskId = model.ParentTaskId
             },
             token);
         
-        return result;
+        transaction.Complete();
     }
+    
 
     private TransactionScope CreateTransactionScope(
         IsolationLevel level = IsolationLevel.ReadCommitted)

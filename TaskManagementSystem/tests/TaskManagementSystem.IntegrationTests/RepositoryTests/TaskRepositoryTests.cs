@@ -104,9 +104,13 @@ public class TaskRepositoryTests
         var expectedTask = tasks.First()
             .WithId(expectedTaskId)
             .WithParentTaskId(parentTaskId);
+        var parentTaskModel = SetParentTaskModelFaker.Generate()
+            .First()
+            .WithTaskId(expectedTaskId)
+            .WithParentTaskId(parentTaskId);
         
         // Act
-        await _repository.SetParentTask(expectedTaskId, parentTaskId, default);
+        await _repository.SetParentTask(parentTaskModel, default);
         
         // Asserts
         var results = await _repository.Get(new TaskGetModel()
@@ -143,7 +147,14 @@ public class TaskRepositoryTests
         var expectedSubTasks = HierarchicalTaskGenerator.CreateTaskHierarchy(tasksList.ToArray(), maxChildrenNumber);
         await Parallel.ForEachAsync(
             expectedSubTasks.ToList(),
-            async (subTask, _) => await _repository.SetParentTask(subTask.TaskId, subTask.ParentTaskIds.Last(), default));
+            async (subTask, _) =>
+            {
+                var parentTaskModel = SetParentTaskModelFaker.Generate()
+                    .First()
+                    .WithTaskId(subTask.TaskId)
+                    .WithParentTaskId(subTask.ParentTaskIds.Last());
+                await _repository.SetParentTask(parentTaskModel, default);
+            });
         
         // Act
         var results = await _repository.GetSubTasksInStatus(parentTaskId,statuses, default);

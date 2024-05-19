@@ -65,7 +65,7 @@ update task_comments
                 cancellationToken: token));
     }
 
-    public async Task SetDeleted(long taskId, CancellationToken token)
+    public async Task SetDeleted(long commentId, CancellationToken token)
     {
         const string sqlQuery = @"
 update task_comments
@@ -79,12 +79,12 @@ update task_comments
                 new
                 {
                     DeletedAt = _dateTimeProvider.UtcNow(),
-                    TaskCommentId = taskId
+                    TaskCommentId = commentId
                 },
                 cancellationToken: token));
     }
 
-    public async Task<TaskCommentEntityV1[]> Get(TaskCommentGetModel model, CancellationToken token)
+    public async Task<TaskCommentEntityV1[]> GetComments(TaskCommentGetModel model, CancellationToken token)
     {
         string baseSql = @"
 select id
@@ -116,5 +116,30 @@ select id
         await using var connection = await GetConnection();
         return (await connection.QueryAsync<TaskCommentEntityV1>(cmd))
             .ToArray();
+    }
+
+    public async Task<TaskCommentEntityV1?> GetCommentById(long commentId, CancellationToken token)
+    {
+        const string sqlQuery = @"
+select id
+     , task_id
+     , author_user_id
+     , message
+     , at
+     , modified_at
+     , deleted_at
+  from task_comments
+ where id = @TaskCommentId;
+";
+        await using var connection = await GetConnection();
+        var comment = (await connection.QueryAsync<TaskCommentEntityV1>(
+            new CommandDefinition(
+                sqlQuery,
+                new
+                {
+                    TaskCommentId = commentId
+                },
+                cancellationToken: token))).SingleOrDefault();
+        return comment;
     }
 }

@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "TaskManagementSystem.Proto.Client";
-package workshop_app.proto.client.tasks;
+package task_management_app.proto.client.tasks;
 
 import "Protos/enums.proto";
 import "google/protobuf/empty.proto";
@@ -12,6 +12,7 @@ service TasksService {
   rpc V1CreateTask(V1CreateTaskRequest) returns (V1CreateTaskResponse);
   rpc V1GetTask(V1GetTaskRequest) returns (V1GetTaskResponse);
   rpc V1AssignTask(V1AssignTaskRequest) returns (google.protobuf.Empty); 
+  rpc V1SetParentTask(V1SetParentTaskRequest) returns (google.protobuf.Empty);
 }
 
 message V1CreateTaskRequest {
@@ -33,7 +34,7 @@ message V1GetTaskResponse {
   string title = 2;
   google.protobuf.StringValue description = 3;
   google.protobuf.Int64Value assigned_to_user_id = 4;
-  workshop_app.proto.client.enums.TaskStatus status = 5;
+  task_management_app.proto.client.enums.TaskStatus status = 5;
   google.protobuf.Timestamp created_at = 6;
 }
 
@@ -41,4 +42,9 @@ message V1AssignTaskRequest {
   int64 task_id = 1;
   int64 assignee_user_id = 2;
   int64 user_id = 3;
+}
+
+message V1SetParentTaskRequest {
+  int64 task_id = 1;
+  int64 parent_task_id = 2;
 }

@@ -19,6 +19,9 @@
       <Protobuf Include="Protos\tasks.proto">
         <Generator>MSBuild:Compile</Generator>
       </Protobuf>
+        <Protobuf Include="Protos\comments.proto">
+            <Generator>MSBuild:Compile</Generator>
+        </Protobuf>
     </ItemGroup>
 
     <ItemGroup>

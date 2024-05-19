@@ -35,7 +35,7 @@ public class TaskCommentRepositoryTests
     }
     
     [Fact]
-    public async Task Get_SingleTaskComment_Success()
+    public async Task GetComments_SingleTaskComment_Success()
     {
         // Arrange
         var taskComment = TaskCommentEntityV1Faker.Generate().First();
@@ -45,7 +45,7 @@ public class TaskCommentRepositoryTests
         var includeDeleted = false;
         
         // Act
-        var results = await _repository.Get(new TaskCommentGetModel()
+        var results = await _repository.GetComments(new TaskCommentGetModel()
         {
             TaskId = taskComment.TaskId,
             IncludeDeleted = includeDeleted
@@ -78,7 +78,7 @@ public class TaskCommentRepositoryTests
         await _repository.Update(updatedTaskComment, default);
         
         // Asserts
-        var results = await _repository.Get(new TaskCommentGetModel()
+        var results = await _repository.GetComments(new TaskCommentGetModel()
         {
             TaskId = updatedTaskComment.TaskId,
             IncludeDeleted = includeDeleted
@@ -106,7 +106,7 @@ public class TaskCommentRepositoryTests
         await _repository.SetDeleted(taskCommentId, default);
         
         // Asserts
-        var results = await _repository.Get(new TaskCommentGetModel()
+        var results = await _repository.GetComments(new TaskCommentGetModel()
         {
             TaskId = taskComment.TaskId,
             IncludeDeleted = includeDeleted

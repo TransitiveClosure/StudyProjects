@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option csharp_namespace = "TaskManagementSystem.Proto.Client";
+package task_management_app.proto.client.comments;
+
+import "Protos/enums.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+service TaskCommentsService {
+  rpc V1CreateComment(V1CreateTaskCommentRequest) returns (V1CreateTaskCommentResponse);
+  rpc V1GetTaskComments(V1GetTaskCommentsRequest) returns (V1GetTaskCommentsResponse);
+  rpc V1SetDeletedTaskComment(V1SetDeletedTaskCommentRequest) returns (google.protobuf.Empty);
+  rpc V1UpdateTaskComment(V1UpdateTaskCommentRequest) returns (google.protobuf.Empty);
+}
+
+message V1CreateTaskCommentRequest {
+  int64 author_user_id = 1;
+  int64 task_id = 2;
+  google.protobuf.StringValue message = 3;
+}
+
+message V1CreateTaskCommentResponse {
+  int64 comment_id = 1;
+}
+
+message V1GetTaskCommentsRequest {
+  int64 task_id = 1;
+  bool include_deleted = 2;
+}
+
+message TaskComments {
+  int64 comment_id = 1;
+  int64 task_id = 2;
+  google.protobuf.StringValue message = 3;
+  bool IsDeleted = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message V1GetTaskCommentsResponse {
+  repeated TaskComments task_comments = 1;
+}
+
+message V1SetDeletedTaskCommentRequest {
+  int64 comment_id = 1;
+}
+
+message V1UpdateTaskCommentRequest {
+  int64 comment_id = 1;
+  google.protobuf.StringValue message = 2;
+} 

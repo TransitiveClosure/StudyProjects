@@ -18,9 +18,11 @@ public class RateLimiterInterceptor : Interceptor
     {
         if (request.ToString() is not null)
         {
-            var userIp = JObject.Parse(request.ToString())["userId"].ToString();
-            Console.WriteLine(userIp);
-            await _rateLimiterService.ThrowIfTooManyRequests(userIp, context.CancellationToken);
+            var userIp = JObject.Parse(request.ToString())["userId"];
+            if (userIp is not null)
+            {
+                await _rateLimiterService.ThrowIfTooManyRequests(userIp.ToString(), context.CancellationToken);
+            }
         }
 
         return await continuation(request, context);

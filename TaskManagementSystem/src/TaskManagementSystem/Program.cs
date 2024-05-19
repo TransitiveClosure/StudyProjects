@@ -41,6 +41,7 @@ services.AddGrpcReflection();
 var app = builder.Build();
 
 app.MapGrpcService<TasksService>();
+app.MapGrpcService<TasksCommentService>();
 app.MapGrpcReflectionService();
 
 app.MigrateUp();
